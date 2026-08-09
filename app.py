@@ -1,714 +1,363 @@
 import streamlit as st
-import random
-from collections import Counter
 
-# =========================================================
-# MEDICAL DATABASE (42 diseases)
-# =========================================================
+# --- MEDICAL DATABASE (22 Diseases, with medicines added) ---
+# Medicines are listed as commonly used drug CLASSES with a familiar
+# example in brackets -- never doses or personal instructions.
+
 DISEASES_DB = {
     "Hypertension": {
-        "category": "Cardiovascular", "icon": "❤️",
+        "category": "Cardiovascular",
         "overview": "A chronic condition where blood force against artery walls is consistently too high.",
         "symptoms": ["Headaches", "Shortness of breath", "Nosebleeds", "Often asymptomatic ('Silent Killer')"],
         "causes": ["High salt intake", "Obesity", "Lack of exercise", "Genetics", "Stress"],
+        "medicines": ["ACE inhibitors (e.g., lisinopril)", "ARBs (e.g., losartan)", "Diuretics / water pills (e.g., hydrochlorothiazide)", "Calcium channel blockers (e.g., amlodipine)", "Beta blockers"],
         "prevention": ["Reduce sodium intake (<2,300mg/day)", "Exercise 150 mins/week", "Maintain healthy BMI", "Limit alcohol"],
-        "screening": "Blood pressure check every 1–2 years starting at age 18.",
-        "severity": "Moderate",
+        "screening": "Blood pressure check every 1-2 years starting at age 18."
     },
     "Coronary Artery Disease": {
-        "category": "Cardiovascular", "icon": "❤️",
+        "category": "Cardiovascular",
         "overview": "Plaque buildup in the coronary arteries that reduces blood flow to the heart.",
         "symptoms": ["Chest pain (angina)", "Shortness of breath", "Fatigue", "Heart attack"],
         "causes": ["High cholesterol", "Smoking", "Diabetes", "Sedentary lifestyle"],
+        "medicines": ["Statins (e.g., atorvastatin)", "Low-dose aspirin", "Beta blockers", "Nitrates for chest pain"],
         "prevention": ["Adopt a Mediterranean diet", "Quit smoking", "Manage cholesterol (LDL < 100 mg/dL)", "Regular cardio"],
-        "screening": "Lipid panel every 4–6 years for adults; ECG or stress testing if symptomatic.",
-        "severity": "High",
+        "screening": "Lipid panel every 4-6 years for adults; ECG or stress testing if symptomatic."
     },
     "Heart Failure": {
-        "category": "Cardiovascular", "icon": "❤️",
+        "category": "Cardiovascular",
         "overview": "A condition where the heart muscle doesn't pump blood as efficiently as it should.",
         "symptoms": ["Shortness of breath during exertion/lying down", "Swelling in legs/ankles", "Rapid heartbeat"],
         "causes": ["Uncontrolled hypertension", "Past heart attack", "Cardiomyopathy", "Valve disorders"],
+        "medicines": ["ACE inhibitors or ARBs", "Beta blockers", "Diuretics / water pills", "SGLT2 inhibitors"],
         "prevention": ["Strict control of blood pressure & diabetes", "Avoid excess alcohol", "Low-sodium diet"],
-        "screening": "Echocardiogram and BNP blood test evaluated by a cardiologist.",
-        "severity": "High",
+        "screening": "Echocardiogram and BNP blood test evaluated by a cardiologist."
     },
     "Ischemic Stroke": {
-        "category": "Neurological", "icon": "🧠",
+        "category": "Cardiovascular / Neurological",
         "overview": "Occurs when blood supply to part of the brain is interrupted or drastically reduced.",
         "symptoms": ["Facial drooping", "Arm weakness", "Slurred speech", "Sudden confusion"],
         "causes": ["Blood clots", "Atherosclerosis", "Atrial fibrillation", "Hypertension"],
+        "medicines": ["Aspirin or clopidogrel", "Blood thinners for AFib (e.g., a DOAC or warfarin)", "Statins", "Blood pressure medicine"],
         "prevention": ["Control blood pressure", "Manage blood sugar", "Treat arrhythmia/AFib", "Avoid smoking"],
-        "screening": "Carotid ultrasound, brain CT/MRI, and routine vascular checkups.",
-        "severity": "High",
-    },
-    "Atrial Fibrillation": {
-        "category": "Cardiovascular", "icon": "❤️",
-        "overview": "An irregular, often rapid heart rhythm originating in the upper chambers of the heart.",
-        "symptoms": ["Heart palpitations", "Fatigue", "Dizziness", "Shortness of breath"],
-        "causes": ["Aging", "High blood pressure", "Heart valve disease", "Excess alcohol/caffeine"],
-        "prevention": ["Manage blood pressure", "Limit stimulants", "Treat sleep apnea", "Routine cardiac checkups"],
-        "screening": "ECG (EKG) or wearable heart-rhythm monitor.",
-        "severity": "Moderate",
+        "screening": "Carotid ultrasound, brain CT/MRI, and routine vascular checkups."
     },
     "Type 2 Diabetes": {
-        "category": "Metabolic", "icon": "🩸",
+        "category": "Metabolic",
         "overview": "A metabolic disorder characterized by high blood sugar due to insulin resistance.",
         "symptoms": ["Increased thirst", "Frequent urination", "Unexplained weight loss", "Blurred vision"],
         "causes": ["Insulin resistance", "Obesity", "Inactivity", "Genetic predisposition"],
+        "medicines": ["Metformin (usually first-line)", "SGLT2 inhibitors", "GLP-1 receptor agonists", "Insulin, if prescribed"],
         "prevention": ["Low-glycemic index diet", "30 minutes daily activity", "Weight loss (5-7% of body weight)"],
-        "screening": "Fasting blood glucose or HbA1c test annually starting at age 35.",
-        "severity": "Moderate",
-    },
-    "Type 1 Diabetes": {
-        "category": "Metabolic", "icon": "🩸",
-        "overview": "An autoimmune condition where the pancreas produces little or no insulin.",
-        "symptoms": ["Rapid weight loss", "Extreme thirst", "Fatigue", "Fruity-smelling breath"],
-        "causes": ["Autoimmune destruction of pancreatic beta cells", "Genetic susceptibility", "Viral triggers"],
-        "prevention": ["No known prevention", "Early diagnosis limits complications", "Blood sugar monitoring"],
-        "screening": "Fasting glucose, HbA1c, and autoantibody blood tests.",
-        "severity": "High",
-    },
-    "Metabolic Syndrome": {
-        "category": "Metabolic", "icon": "🩸",
-        "overview": "A cluster of conditions — high blood pressure, high blood sugar, excess abdominal fat, abnormal cholesterol — that raise heart disease risk.",
-        "symptoms": ["Large waistline", "Often asymptomatic", "Fatigue", "High blood pressure readings"],
-        "causes": ["Insulin resistance", "Obesity", "Sedentary lifestyle", "Genetics"],
-        "prevention": ["Weight management", "Regular aerobic exercise", "Reduce refined carbs and sugar"],
-        "screening": "Waist circumference, blood pressure, lipid panel, and fasting glucose.",
-        "severity": "Moderate",
+        "screening": "Fasting blood glucose or HbA1c test annually starting at age 35."
     },
     "Hypothyroidism": {
-        "category": "Endocrine", "icon": "🦋",
+        "category": "Endocrine",
         "overview": "Underactive thyroid gland failing to produce sufficient thyroid hormone.",
         "symptoms": ["Fatigue", "Weight gain", "Cold intolerance", "Dry skin", "Depression"],
         "causes": ["Hashimoto's thyroiditis (autoimmune)", "Thyroid surgery", "Radiation therapy"],
+        "medicines": ["Levothyroxine (daily thyroid hormone replacement)"],
         "prevention": ["Ensure adequate iodine intake", "Early diagnosis via routine blood tests"],
-        "screening": "Serum TSH (Thyroid-Stimulating Hormone) blood test.",
-        "severity": "Low",
-    },
-    "Hyperthyroidism": {
-        "category": "Endocrine", "icon": "🦋",
-        "overview": "Overactive thyroid gland producing excess thyroid hormone, speeding up metabolism.",
-        "symptoms": ["Unexplained weight loss", "Rapid heartbeat", "Sweating", "Anxiety/irritability"],
-        "causes": ["Graves' disease (autoimmune)", "Thyroid nodules", "Excess iodine intake"],
-        "prevention": ["No direct prevention", "Regular thyroid function monitoring if at risk"],
-        "screening": "Serum TSH, free T4, and T3 blood tests.",
-        "severity": "Moderate",
+        "screening": "Serum TSH (Thyroid-Stimulating Hormone) blood test."
     },
     "Fatty Liver Disease (NAFLD)": {
-        "category": "Metabolic", "icon": "🩸",
+        "category": "Metabolic",
         "overview": "Excess fat buildup in liver cells not caused by heavy alcohol consumption.",
         "symptoms": ["Fatigue", "Pain in upper right abdomen", "Often asymptomatic"],
         "causes": ["Obesity", "Insulin resistance", "High intake of refined sugars/fructose"],
+        "medicines": ["No drug directly cures NAFLD", "Vitamin E or pioglitazone in select cases", "Treating cholesterol/diabetes helps protect the liver"],
         "prevention": ["Avoid sugary beverages", "Regular resistance & aerobic training", "Weight management"],
-        "screening": "Liver enzyme blood tests (ALT/AST) and abdominal ultrasound.",
-        "severity": "Moderate",
+        "screening": "Liver enzyme blood tests (ALT/AST) and abdominal ultrasound."
     },
     "Asthma": {
-        "category": "Respiratory", "icon": "🫁",
+        "category": "Respiratory",
         "overview": "Chronic condition where airways narrow, swell, and produce extra mucus.",
         "symptoms": ["Wheezing", "Coughing (especially at night)", "Chest tightness", "Shortness of breath"],
         "causes": ["Genetic triggers", "Allergens (pollen, dust mites)", "Respiratory infections", "Cold air"],
+        "medicines": ["Reliever inhaler (e.g., albuterol)", "Inhaled corticosteroids (preventer)", "Long-acting beta agonists", "Leukotriene modifiers"],
         "prevention": ["Identify/avoid environmental triggers", "Annual flu vaccine", "Use prescribed preventive inhalers"],
-        "screening": "Spirometry / Pulmonary Function Testing (PFT).",
-        "severity": "Moderate",
+        "screening": "Spirometry / Pulmonary Function Testing (PFT)."
     },
     "COPD": {
-        "category": "Respiratory", "icon": "🫁",
+        "category": "Respiratory",
         "overview": "Progressive inflammatory lung disease causing obstructed airflow from the lungs.",
         "symptoms": ["Chronic cough with mucus", "Shortness of breath", "Frequent respiratory infections"],
         "causes": ["Long-term cigarette smoking", "Air pollution exposure", "Chemical fumes"],
+        "medicines": ["Bronchodilator inhalers", "Combination inhalers (steroid + bronchodilator)", "Antibiotics during a flare-up"],
         "prevention": ["Zero tobacco smoking", "Use respirator masks in toxic environments", "Pneumococcal vaccination"],
-        "screening": "Spirometry and chest X-rays.",
-        "severity": "High",
+        "screening": "Spirometry and chest X-rays."
     },
     "Pneumonia": {
-        "category": "Respiratory", "icon": "🫁",
+        "category": "Respiratory Infection",
         "overview": "Infection that inflames air sacs in one or both lungs, which may fill with fluid or pus.",
         "symptoms": ["High fever/chills", "Cough with phlegm", "Chest pain when breathing", "Shortness of breath"],
         "causes": ["Bacteria (Streptococcus pneumoniae)", "Viruses (Flu, COVID-19)", "Fungi"],
+        "medicines": ["Antibiotics (bacterial cases)", "Antivirals (viral cases)", "Fever/pain relief (e.g., paracetamol)"],
         "prevention": ["Pneumococcal and Influenza vaccines", "Good hand hygiene", "Avoid smoking"],
-        "screening": "Chest X-ray, sputum culture, and pulse oximetry.",
-        "severity": "High",
-    },
-    "Sleep Apnea": {
-        "category": "Respiratory", "icon": "🫁",
-        "overview": "A disorder where breathing repeatedly stops and starts during sleep.",
-        "symptoms": ["Loud snoring", "Gasping during sleep", "Daytime fatigue", "Morning headaches"],
-        "causes": ["Obesity", "Airway anatomy", "Alcohol/sedative use", "Aging"],
-        "prevention": ["Weight management", "Sleep on your side", "Avoid alcohol before bed"],
-        "screening": "Overnight polysomnography (sleep study).",
-        "severity": "Moderate",
+        "screening": "Chest X-ray, sputum culture, and pulse oximetry."
     },
     "Tuberculosis (TB)": {
-        "category": "Infectious", "icon": "🦠",
+        "category": "Infectious",
         "overview": "Potentially serious infectious bacterial disease mainly affecting the lungs.",
         "symptoms": ["Cough lasting 3+ weeks", "Coughing up blood", "Night sweats", "Unintentional weight loss"],
         "causes": ["Mycobacterium tuberculosis spread via airborne droplets"],
+        "medicines": ["Combination antibiotics (isoniazid, rifampin, ethambutol, pyrazinamide) for 6+ months, set by your doctor"],
         "prevention": ["BCG vaccine in endemic areas", "Proper ventilation", "Treating latent TB infections"],
-        "screening": "Mantoux Tuberculin Skin Test (TST) or IGRA Blood Test.",
-        "severity": "High",
+        "screening": "Mantoux Tuberculin Skin Test (TST) or IGRA Blood Test."
     },
     "Malaria": {
-        "category": "Infectious", "icon": "🦠",
+        "category": "Infectious",
         "overview": "Mosquito-borne disease caused by a microscopic parasite.",
         "symptoms": ["High fever", "Shaking chills", "Headache", "Nausea/vomiting", "Muscle pain"],
         "causes": ["Plasmodium parasite transmitted via Anopheles mosquito bite"],
+        "medicines": ["Antimalarial medicine chosen by a doctor based on the parasite type and region", "Preventive antimalarial tablets before travel to risk areas"],
         "prevention": ["Insecticide-treated bed nets", "Prophylactic antimalarial medication", "Insect repellent (DEET)"],
-        "screening": "Rapid Diagnostic Test (RDT) or thick/thin blood smear microscopic exam.",
-        "severity": "High",
-    },
-    "Dengue Fever": {
-        "category": "Infectious", "icon": "🦠",
-        "overview": "A mosquito-borne viral infection common in tropical and subtropical climates.",
-        "symptoms": ["High fever", "Severe headache", "Pain behind the eyes", "Rash", "Joint/muscle pain"],
-        "causes": ["Dengue virus transmitted by Aedes mosquitoes"],
-        "prevention": ["Eliminate standing water", "Use mosquito repellent", "Wear protective clothing"],
-        "screening": "NS1 antigen test or dengue IgM/IgG antibody blood test.",
-        "severity": "Moderate",
-    },
-    "Influenza": {
-        "category": "Infectious", "icon": "🦠",
-        "overview": "A contagious respiratory illness caused by influenza viruses.",
-        "symptoms": ["Fever", "Chills", "Muscle aches", "Cough", "Fatigue"],
-        "causes": ["Influenza A or B virus, spread via respiratory droplets"],
-        "prevention": ["Annual flu vaccination", "Frequent handwashing", "Avoid close contact when sick"],
-        "screening": "Rapid influenza diagnostic test (RIDT) or PCR swab.",
-        "severity": "Low",
-    },
-    "COVID-19": {
-        "category": "Infectious", "icon": "🦠",
-        "overview": "A respiratory illness caused by the SARS-CoV-2 virus, ranging from mild to severe.",
-        "symptoms": ["Fever", "Cough", "Loss of taste/smell", "Fatigue", "Shortness of breath"],
-        "causes": ["SARS-CoV-2 virus spread via respiratory droplets/aerosols"],
-        "prevention": ["Vaccination and boosters", "Ventilation", "Hand hygiene", "Masking in high-risk settings"],
-        "screening": "PCR or rapid antigen test.",
-        "severity": "Moderate",
-    },
-    "HIV/AIDS": {
-        "category": "Infectious", "icon": "🦠",
-        "overview": "A viral infection that attacks the immune system; untreated it progresses to AIDS.",
-        "symptoms": ["Flu-like illness early on", "Recurrent infections", "Swollen lymph nodes", "Weight loss"],
-        "causes": ["HIV virus transmitted via blood, sexual contact, or mother-to-child"],
-        "prevention": ["PrEP medication", "Condom use", "Sterile needles", "Regular testing"],
-        "screening": "HIV antibody/antigen blood test.",
-        "severity": "High",
-    },
-    "Typhoid Fever": {
-        "category": "Infectious", "icon": "🦠",
-        "overview": "A bacterial infection spread through contaminated food or water.",
-        "symptoms": ["Sustained high fever", "Weakness", "Abdominal pain", "Headache", "Loss of appetite"],
-        "causes": ["Salmonella Typhi bacteria via contaminated food/water"],
-        "prevention": ["Typhoid vaccination", "Safe drinking water", "Good food hygiene"],
-        "screening": "Blood culture (Widal test or PCR).",
-        "severity": "Moderate",
+        "screening": "Rapid Diagnostic Test (RDT) or thick/thin blood smear microscopic exam."
     },
     "Hepatitis B": {
-        "category": "Infectious", "icon": "🦠",
+        "category": "Infectious / Liver",
         "overview": "Serious liver infection caused by the Hepatitis B virus (HBV).",
         "symptoms": ["Jaundice (yellow eyes/skin)", "Dark urine", "Abdominal pain", "Fatigue"],
         "causes": ["Exposure to infected blood or bodily fluids", "Unsafe injections", "Mother to child"],
+        "medicines": ["Antivirals for chronic cases needing treatment (e.g., tenofovir, entecavir)"],
         "prevention": ["Hepatitis B vaccination (3-dose series)", "Safe medical practices", "Avoid sharing personal items"],
-        "screening": "HBsAg (Hepatitis B surface antigen) blood panel.",
-        "severity": "Moderate",
+        "screening": "HBsAg (Hepatitis B surface antigen) blood panel."
     },
     "Lyme Disease": {
-        "category": "Infectious", "icon": "🦠",
+        "category": "Infectious",
         "overview": "Bacterial illness transmitted by infected blacklegged ticks.",
         "symptoms": ["'Bullseye' rash (Erythema migrans)", "Fever", "Joint pain", "Neurological issues if untreated"],
         "causes": ["Borrelia burgdorferi bacterium via tick bite"],
+        "medicines": ["Antibiotics such as doxycycline or amoxicillin, usually for a few weeks"],
         "prevention": ["Wear long sleeves/pants in wooded areas", "Use DEET/Permethrin", "Check body for ticks promptly"],
-        "screening": "Two-tiered antibody blood testing (ELISA followed by Western Blot).",
-        "severity": "Low",
+        "screening": "Two-tiered antibody blood testing (ELISA followed by Western Blot)."
     },
     "Alzheimer's Disease": {
-        "category": "Neurological", "icon": "🧠",
+        "category": "Neurological",
         "overview": "Progressive neurodegenerative disease causing brain cells to waste away and die.",
         "symptoms": ["Memory loss affecting daily life", "Disorientation", "Language difficulties", "Behavioral changes"],
         "causes": ["Amyloid plaque & tau tangle accumulation", "Genetics (APOE-e4)", "Age"],
+        "medicines": ["Cholinesterase inhibitors (e.g., donepezil)", "Memantine, sometimes used alongside them"],
         "prevention": ["Regular cognitive exercises", "Social engagement", "Cardiovascular health maintenance"],
-        "screening": "Cognitive assessment tests (MMSE), brain MRI/PET scans.",
-        "severity": "High",
+        "screening": "Cognitive assessment tests (MMSE), brain MRI/PET scans."
     },
     "Parkinson's Disease": {
-        "category": "Neurological", "icon": "🧠",
+        "category": "Neurological",
         "overview": "Central nervous system disorder affecting movement and dopamine-producing neurons.",
         "symptoms": ["Resting tremor", "Bradykinesia (slowed movement)", "Muscle rigidity", "Postural instability"],
         "causes": ["Loss of dopamine neurons in substantia nigra", "Genetic mutation", "Environmental toxins"],
+        "medicines": ["Levodopa combined with carbidopa (main treatment)", "Dopamine agonists", "MAO-B inhibitors"],
         "prevention": ["Regular high-intensity aerobic exercise", "Diet rich in antioxidants"],
-        "screening": "Clinical evaluation by a neurologist; DaTscan imaging.",
-        "severity": "High",
-    },
-    "Migraine": {
-        "category": "Neurological", "icon": "🧠",
-        "overview": "A neurological condition causing intense, recurring headaches often with additional symptoms.",
-        "symptoms": ["Throbbing head pain", "Nausea", "Sensitivity to light/sound", "Visual aura"],
-        "causes": ["Genetic predisposition", "Hormonal changes", "Stress", "Certain foods or triggers"],
-        "prevention": ["Identify and avoid triggers", "Regular sleep schedule", "Stress management", "Stay hydrated"],
-        "screening": "Clinical diagnosis based on headache history; MRI to rule out other causes.",
-        "severity": "Low",
-    },
-    "Epilepsy": {
-        "category": "Neurological", "icon": "🧠",
-        "overview": "A neurological disorder marked by recurrent, unprovoked seizures.",
-        "symptoms": ["Seizures (convulsive or non-convulsive)", "Temporary confusion", "Staring spells", "Loss of consciousness"],
-        "causes": ["Brain injury", "Genetics", "Stroke", "Infections affecting the brain"],
-        "prevention": ["Prevent head injuries", "Manage fevers in children promptly", "Medication adherence if diagnosed"],
-        "screening": "EEG (Electroencephalogram) and brain imaging.",
-        "severity": "Moderate",
-    },
-    "Multiple Sclerosis": {
-        "category": "Neurological", "icon": "🧠",
-        "overview": "An autoimmune disease where the immune system attacks the protective covering of nerves.",
-        "symptoms": ["Numbness or weakness in limbs", "Vision problems", "Fatigue", "Balance issues"],
-        "causes": ["Autoimmune nerve damage", "Genetic susceptibility", "Environmental factors (e.g. low vitamin D)"],
-        "prevention": ["No known prevention", "Vitamin D sufficiency may lower risk", "Avoid smoking"],
-        "screening": "MRI of brain/spine and lumbar puncture (spinal fluid analysis).",
-        "severity": "High",
+        "screening": "Clinical evaluation by a neurologist; DaTscan imaging."
     },
     "Major Depressive Disorder": {
-        "category": "Mental Health", "icon": "🧩",
+        "category": "Mental Health",
         "overview": "A mood disorder causing persistent feelings of sadness and loss of interest.",
         "symptoms": ["Persistent low mood", "Anhedonia", "Changes in sleep/appetite", "Fatigue", "Low concentration"],
         "causes": ["Neurochemical imbalances", "Genetic vulnerability", "Chronic stress or trauma"],
+        "medicines": ["SSRIs (e.g., sertraline)", "SNRIs", "Other antidepressants -- often combined with talking therapy"],
         "prevention": ["Building strong social support systems", "Regular physical activity", "Stress management"],
-        "screening": "PHQ-9 (Patient Health Questionnaire) screening tool.",
-        "severity": "Moderate",
-    },
-    "Generalized Anxiety Disorder": {
-        "category": "Mental Health", "icon": "🧩",
-        "overview": "A mental health condition marked by excessive, persistent worry about everyday matters.",
-        "symptoms": ["Excessive worry", "Restlessness", "Muscle tension", "Difficulty concentrating", "Sleep problems"],
-        "causes": ["Genetics", "Brain chemistry", "Chronic stress", "Trauma"],
-        "prevention": ["Stress-reduction techniques", "Limit caffeine", "Regular exercise", "Adequate sleep"],
-        "screening": "GAD-7 questionnaire and clinical psychological evaluation.",
-        "severity": "Moderate",
-    },
-    "Bipolar Disorder": {
-        "category": "Mental Health", "icon": "🧩",
-        "overview": "A mental health condition causing extreme mood swings between mania/hypomania and depression.",
-        "symptoms": ["Episodes of elevated mood/energy", "Depressive episodes", "Impulsivity", "Sleep disturbances"],
-        "causes": ["Genetic factors", "Brain structure/chemistry differences", "Stressful life events"],
-        "prevention": ["No known prevention", "Early treatment reduces episode severity", "Consistent sleep routine"],
-        "screening": "Clinical psychiatric evaluation; mood disorder questionnaires.",
-        "severity": "High",
+        "screening": "PHQ-9 (Patient Health Questionnaire) screening tool."
     },
     "Osteoporosis": {
-        "category": "Musculoskeletal", "icon": "🦴",
+        "category": "Musculoskeletal",
         "overview": "Condition where bones become weak and brittle, increasing fracture risk.",
         "symptoms": ["Bone fractures from minor falls", "Loss of height over time", "Stooped posture"],
         "causes": ["Aging", "Estrogen decline in post-menopause", "Calcium & Vitamin D deficiency"],
+        "medicines": ["Bisphosphonates (e.g., alendronate)", "Calcium and vitamin D supplements", "Other bone-strengthening medicines as prescribed"],
         "prevention": ["Adequate daily Calcium (1000-1200mg) and Vitamin D", "Weight-bearing exercises"],
-        "screening": "DEXA (Dual-energy X-ray absorptiometry) bone density scan.",
-        "severity": "Moderate",
+        "screening": "DEXA (Dual-energy X-ray absorptiometry) bone density scan."
     },
     "Osteoarthritis": {
-        "category": "Musculoskeletal", "icon": "🦴",
+        "category": "Musculoskeletal",
         "overview": "Degenerative joint disease caused by breakdown of joint cartilage.",
         "symptoms": ["Joint pain and stiffness", "Loss of flexibility", "Grating sensation during movement"],
         "causes": ["Joint wear and tear", "Prior joint injuries", "Obesity"],
+        "medicines": ["Paracetamol for pain", "NSAIDs (e.g., ibuprofen)", "Topical gels", "Steroid injections for bad flare-ups"],
         "prevention": ["Maintain a healthy weight", "Low-impact exercises (swimming/cycling)", "Protect joints from injury"],
-        "screening": "Joint X-rays and clinical physical examination.",
-        "severity": "Low",
-    },
-    "Rheumatoid Arthritis": {
-        "category": "Musculoskeletal", "icon": "🦴",
-        "overview": "An autoimmune disorder causing chronic inflammation of the joints.",
-        "symptoms": ["Symmetrical joint pain/swelling", "Morning stiffness", "Fatigue", "Low-grade fever"],
-        "causes": ["Autoimmune attack on joint lining", "Genetic factors", "Smoking"],
-        "prevention": ["No known prevention", "Avoid smoking", "Early treatment slows joint damage"],
-        "screening": "Rheumatoid factor (RF) and anti-CCP antibody blood tests.",
-        "severity": "Moderate",
-    },
-    "Gout": {
-        "category": "Musculoskeletal", "icon": "🦴",
-        "overview": "A form of inflammatory arthritis caused by excess uric acid crystallizing in joints.",
-        "symptoms": ["Sudden severe joint pain (often big toe)", "Redness and swelling", "Warmth in joint"],
-        "causes": ["High uric acid levels", "Diet high in purines (red meat, alcohol)", "Obesity"],
-        "prevention": ["Limit alcohol and red meat", "Stay hydrated", "Maintain healthy weight"],
-        "screening": "Serum uric acid test and joint fluid analysis.",
-        "severity": "Low",
+        "screening": "Joint X-rays and clinical physical examination."
     },
     "Chronic Kidney Disease": {
-        "category": "Renal", "icon": "🫘",
+        "category": "Renal",
         "overview": "Gradual loss of kidney function over time, leading to dangerous fluid/waste buildup.",
         "symptoms": ["Swollen ankles/feet", "Fatigue", "Changes in urination frequency", "Nausea"],
         "causes": ["Uncontrolled diabetes", "Long-term hypertension", "Glomerulonephritis"],
+        "medicines": ["ACE inhibitors or ARBs (protect the kidneys)", "Medicines to manage diabetes and cholesterol", "Avoid regular NSAID use (e.g., ibuprofen)"],
         "prevention": ["Tight blood sugar & pressure control", "Avoid long-term overuse of NSAIDs (e.g., ibuprofen)"],
-        "screening": "eGFR (Estimated Glomerular Filtration Rate) blood test and urine albumin test.",
-        "severity": "High",
-    },
-    "Kidney Stones": {
-        "category": "Renal", "icon": "🫘",
-        "overview": "Hard mineral deposits that form inside the kidneys and can cause severe pain when passing.",
-        "symptoms": ["Severe flank/back pain", "Blood in urine", "Nausea/vomiting", "Painful urination"],
-        "causes": ["Dehydration", "High-sodium/high-oxalate diet", "Obesity", "Family history"],
-        "prevention": ["Drink plenty of water", "Limit sodium and animal protein", "Reduce oxalate-rich foods"],
-        "screening": "CT scan or ultrasound of the kidneys.",
-        "severity": "Moderate",
-    },
-    "GERD": {
-        "category": "Gastrointestinal", "icon": "🍽️",
-        "overview": "A digestive disorder where stomach acid frequently flows back into the esophagus.",
-        "symptoms": ["Heartburn", "Regurgitation", "Chest discomfort", "Difficulty swallowing"],
-        "causes": ["Weak lower esophageal sphincter", "Obesity", "Hiatal hernia", "Certain foods"],
-        "prevention": ["Avoid large/late meals", "Limit caffeine, alcohol, spicy food", "Maintain healthy weight"],
-        "screening": "Clinical diagnosis; endoscopy or pH monitoring if severe.",
-        "severity": "Low",
-    },
-    "Irritable Bowel Syndrome (IBS)": {
-        "category": "Gastrointestinal", "icon": "🍽️",
-        "overview": "A common disorder affecting the large intestine, causing chronic digestive discomfort.",
-        "symptoms": ["Abdominal pain/cramping", "Bloating", "Diarrhea or constipation", "Gas"],
-        "causes": ["Gut-brain axis dysfunction", "Food sensitivities", "Stress", "Altered gut microbiota"],
-        "prevention": ["Identify trigger foods", "Manage stress", "Regular meal patterns", "Fiber intake"],
-        "screening": "Clinical diagnosis based on symptom criteria (Rome IV); rules out other conditions.",
-        "severity": "Low",
-    },
-    "Celiac Disease": {
-        "category": "Gastrointestinal", "icon": "🍽️",
-        "overview": "An autoimmune disorder where gluten ingestion damages the small intestine lining.",
-        "symptoms": ["Diarrhea/bloating after gluten", "Fatigue", "Weight loss", "Anemia"],
-        "causes": ["Autoimmune reaction to gluten", "Genetic predisposition (HLA-DQ2/DQ8)"],
-        "prevention": ["No known prevention", "Strict gluten-free diet once diagnosed manages symptoms"],
-        "screening": "tTG-IgA antibody blood test, confirmed by intestinal biopsy.",
-        "severity": "Moderate",
-    },
-    "Psoriasis": {
-        "category": "Dermatological", "icon": "🩹",
-        "overview": "A chronic autoimmune skin condition causing rapid buildup of skin cells.",
-        "symptoms": ["Red, scaly patches", "Itching or burning", "Thickened nails", "Joint pain (in some cases)"],
-        "causes": ["Immune system dysfunction", "Genetics", "Triggers like stress or infection"],
-        "prevention": ["Manage stress", "Avoid known triggers", "Moisturize skin regularly"],
-        "screening": "Clinical skin examination; skin biopsy if diagnosis unclear.",
-        "severity": "Low",
-    },
-    "Eczema (Atopic Dermatitis)": {
-        "category": "Dermatological", "icon": "🩹",
-        "overview": "A chronic condition causing dry, itchy, and inflamed skin, often starting in childhood.",
-        "symptoms": ["Itchy, dry skin", "Red to brownish-gray patches", "Small raised bumps that may leak fluid"],
-        "causes": ["Genetic skin barrier defects", "Immune system overreaction", "Allergens/irritants"],
-        "prevention": ["Regular moisturizing", "Avoid harsh soaps/irritants", "Identify and avoid allergens"],
-        "screening": "Clinical skin examination; allergy testing if triggers unclear.",
-        "severity": "Low",
+        "screening": "eGFR (Estimated Glomerular Filtration Rate) blood test and urine albumin test."
     },
     "Colorectal Cancer": {
-        "category": "Oncology", "icon": "🎗️",
+        "category": "Oncology",
         "overview": "Cancer starting in the colon or rectum, usually developing from precancerous polyps.",
         "symptoms": ["Changes in bowel habits", "Blood in stool", "Unexplained weight loss", "Abdominal cramping"],
         "causes": ["Age", "Family history", "Diet high in processed meats", "Smoking & alcohol"],
+        "medicines": ["Treatment (surgery, chemotherapy, and/or targeted therapy) is planned individually by a cancer specialist"],
         "prevention": ["High-fiber diet", "Limit red/processed meats", "Regular physical activity"],
-        "screening": "Colonoscopy starting at age 45 (or earlier with family history).",
-        "severity": "High",
+        "screening": "Colonoscopy starting at age 45 (or earlier with family history)."
     },
     "Breast Cancer": {
-        "category": "Oncology", "icon": "🎗️",
+        "category": "Oncology",
         "overview": "Cancer that forms in the tissue and cells of the breasts.",
         "symptoms": ["Painless breast lump", "Changes in breast shape/size", "Skin dimpling", "Nipple discharge"],
         "causes": ["BRCA1/BRCA2 gene mutations", "Hormonal factors", "Increasing age", "Alcohol consumption"],
+        "medicines": ["Treatment (surgery, chemotherapy, hormone therapy, and/or targeted therapy) is planned individually by a cancer specialist"],
         "prevention": ["Maintain healthy weight", "Limit hormone replacement therapy", "Limit alcohol"],
-        "screening": "Annual or biennial Screening Mammogram starting at age 40.",
-        "severity": "High",
-    },
-    "Lung Cancer": {
-        "category": "Oncology", "icon": "🎗️",
-        "overview": "Cancer that begins in the lungs, most commonly linked to tobacco smoke exposure.",
-        "symptoms": ["Persistent cough", "Coughing up blood", "Chest pain", "Unexplained weight loss"],
-        "causes": ["Cigarette smoking", "Secondhand smoke", "Radon exposure", "Air pollution"],
-        "prevention": ["Avoid smoking and secondhand smoke", "Test home for radon", "Avoid occupational carcinogens"],
-        "screening": "Low-dose CT scan for high-risk current/former smokers aged 50–80.",
-        "severity": "High",
-    },
-    "Prostate Cancer": {
-        "category": "Oncology", "icon": "🎗️",
-        "overview": "Cancer that develops in the prostate gland, common in older men.",
-        "symptoms": ["Difficulty urinating", "Weak urine stream", "Blood in urine/semen", "Often asymptomatic early"],
-        "causes": ["Age", "Family history", "Genetic mutations", "Race/ethnicity risk factors"],
-        "prevention": ["Diet rich in vegetables", "Maintain healthy weight", "Regular exercise"],
-        "screening": "PSA (Prostate-Specific Antigen) blood test and digital rectal exam.",
-        "severity": "Moderate",
-    },
-    "Melanoma": {
-        "category": "Oncology", "icon": "🎗️",
-        "overview": "The most serious type of skin cancer, developing in pigment-producing cells.",
-        "symptoms": ["New or changing mole", "Asymmetric borders", "Multiple colors in one spot", "Diameter growth"],
-        "causes": ["UV radiation exposure", "Sunburn history", "Fair skin", "Family history"],
-        "prevention": ["Use SPF 30+ sunscreen daily", "Avoid tanning beds", "Wear protective clothing"],
-        "screening": "Annual full-body skin examination by a dermatologist.",
-        "severity": "High",
-    },
+        "screening": "Annual or biennial Screening Mammogram starting at age 40."
+    }
 }
 
-CATEGORY_ICONS = {
-    "Cardiovascular": "❤️", "Neurological": "🧠", "Metabolic": "🩸", "Endocrine": "🦋",
-    "Respiratory": "🫁", "Infectious": "🦠", "Mental Health": "🧩", "Musculoskeletal": "🦴",
-    "Renal": "🫘", "Gastrointestinal": "🍽️", "Dermatological": "🩹", "Oncology": "🎗️",
-}
-SEVERITY_COLOR = {"Low": "#a6e3a1", "Moderate": "#f9e2af", "High": "#f38ba8"}
+# --- PAGE CONFIG ---
+st.set_page_config(
+    page_title="Healix Companion - Your Health Helper",
+    page_icon="⚕️",
+    layout="wide"
+)
 
-# =========================================================
-# PAGE CONFIG + STYLING
-# =========================================================
-st.set_page_config(page_title="Healix — Medical Explorer", page_icon="⚕️", layout="wide")
+# --- STYLING (light, high-contrast, large-text theme for older users) ---
+st.markdown("""
+<style>
+    html, body, [class*="css"]  { font-size: 19px !important; }
+    .stApp { background-color: #F6F8F3; }
+    section[data-testid="stSidebar"] { background-color: #EAF1EA; }
+    h1, h2, h3 { color: #154F46 !important; }
+    .stChatMessage { font-size: 19px; }
+    .stButton button {
+        font-size: 18px !important;
+        padding: 0.6em 1.2em !important;
+        border-radius: 12px !important;
+        border: 2px solid #1F6F63 !important;
+        min-height: 48px;
+    }
+    .category-badge {
+        display: inline-block;
+        background-color: #FBEED8;
+        color: #C9861A;
+        font-weight: bold;
+        font-size: 0.9rem;
+        padding: 4px 10px;
+        border-radius: 4px;
+        margin-bottom: 12px;
+    }
+    .section-header {
+        color: #154F46;
+        font-weight: bold;
+        font-size: 1.15rem;
+        margin-top: 18px;
+        margin-bottom: 6px;
+    }
+    .bullet-item { color: #16211E; margin-left: 10px; font-size: 1.05rem; }
+    .overview-text, .screening-text { color: #16211E; font-size: 1.1rem; }
+    .disclaimer {
+        color: #A5402F;
+        background-color: #FBEAE6;
+        font-size: 0.95rem;
+        border-radius: 8px;
+        margin-top: 20px;
+        padding: 12px;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-if "theme" not in st.session_state:
-    st.session_state.theme = "Dark"
-if "favorites" not in st.session_state:
-    st.session_state.favorites = set()
+# --- HEADER ---
+st.markdown("## \u2695\ufe0f Healix Companion")
+st.caption("A simple health chatbot -- ask about a condition, its symptoms, and the medicines commonly used for it.")
 
-def inject_css(theme: str):
-    if theme == "Dark":
-        bg, sidebar_bg, card_bg, text, subtext, accent, border = (
-            "#1e1e2e", "#181825", "#232336", "#cdd6f4", "#a6adc8", "#89b4fa", "#313244"
-        )
-    else:
-        bg, sidebar_bg, card_bg, text, subtext, accent, border = (
-            "#f5f5fa", "#ffffff", "#ffffff", "#1e1e2e", "#4c4f69", "#1e66f5", "#dcdcf0"
-        )
-    st.markdown(f"""
-    <style>
-    .stApp {{ background-color: {bg}; }}
-    section[data-testid="stSidebar"] {{ background-color: {sidebar_bg}; }}
-    h1, h2, h3 {{ color: {accent}; }}
-    div[data-testid="stMetric"] {{
-        background-color: {card_bg}; border: 1px solid {border}; border-radius: 10px; padding: 10px;
-    }}
-    .healix-card {{
-        background-color: {card_bg}; border: 1px solid {border}; border-radius: 14px;
-        padding: 18px 22px; margin-bottom: 14px;
-    }}
-    .healix-title {{ font-size: 1.6rem; font-weight: 800; color: {text}; }}
-    .category-badge {{
-        display: inline-block; background-color: {sidebar_bg}; color: #a6e3a1; font-weight: bold;
-        font-size: 0.78rem; padding: 4px 10px; border-radius: 999px; margin-right: 6px;
-    }}
-    .severity-badge {{
-        display: inline-block; font-weight: bold; font-size: 0.78rem; padding: 4px 10px;
-        border-radius: 999px; color: #1e1e2e;
-    }}
-    .bullet-item {{ color: {subtext}; margin-left: 4px; margin-bottom: 4px; }}
-    .body-text {{ color: {text}; line-height: 1.5; }}
-    .disclaimer {{
-        color: {subtext}; font-size: 0.8rem; font-style: italic; border-top: 1px solid {border};
-        margin-top: 25px; padding-top: 10px;
-    }}
-    .match-pill {{
-        display:inline-block; background:{accent}; color:#1e1e2e; border-radius:999px;
-        padding:2px 10px; font-size:0.75rem; font-weight:700; margin-left:8px;
-    }}
-    </style>
-    """, unsafe_allow_html=True)
+# --- TEXT SIZE CONTROL (sidebar, big buttons) ---
+with st.sidebar:
+    st.markdown("### Text size")
+    size = st.radio("Text size", ["Normal", "Larger", "Largest"], label_visibility="collapsed", horizontal=False)
+    size_map = {"Normal": "19px", "Larger": "22px", "Largest": "26px"}
+    st.markdown(f"<style>html, body, [class*='css'] {{ font-size: {size_map[size]} !important; }}</style>", unsafe_allow_html=True)
 
-inject_css(st.session_state.theme)
+    st.markdown("### Browse by category")
+    categories = sorted(set(d["category"] for d in DISEASES_DB.values()))
+    for cat in categories:
+        if st.button(cat, use_container_width=True, key=f"cat_{cat}"):
+            st.session_state["pending_disease"] = None
+            st.session_state["pending_category"] = cat
 
-# =========================================================
-# HELPERS
-# =========================================================
-def all_categories():
-    return sorted({d["category"] for d in DISEASES_DB.values()})
+# --- CHAT STATE ---
+if "messages" not in st.session_state:
+    st.session_state["messages"] = [
+        {"role": "assistant", "text": "Hello! \U0001F44B I'm Healix Companion. Ask me about a health condition "
+                                       "(like 'diabetes' or 'asthma') or a symptom (like 'cough' or 'fatigue'), "
+                                       "or use the category buttons in the sidebar."}
+    ]
+if "pending_category" not in st.session_state:
+    st.session_state["pending_category"] = None
 
-def all_symptoms():
-    s = set()
-    for d in DISEASES_DB.values():
-        s.update(d["symptoms"])
-    return sorted(s)
 
-def search_diseases(query, categories):
-    query = (query or "").lower().strip()
+def render_disease_card(name):
+    d = DISEASES_DB[name]
+    lines = [f"### {name}", f"<span class='category-badge'>{d['category'].upper()}</span>", ""]
+    html = f"<span class='category-badge'>{d['category'].upper()}</span>"
+    html += "<div class='section-header'>OVERVIEW</div>"
+    html += f"<div class='overview-text'>{d['overview']}</div>"
+    html += "<div class='section-header'>COMMON SYMPTOMS</div>"
+    for item in d["symptoms"]:
+        html += f"<div class='bullet-item'>&bull; {item}</div>"
+    html += "<div class='section-header'>MEDICINES COMMONLY USED</div>"
+    for item in d["medicines"]:
+        html += f"<div class='bullet-item'>&bull; {item}</div>"
+    html += "<div class='section-header'>PREVENTION STRATEGIES</div>"
+    for item in d["prevention"]:
+        html += f"<div class='bullet-item'>&bull; {item}</div>"
+    html += "<div class='section-header'>RECOMMENDED SCREENING</div>"
+    html += f"<div class='screening-text'>{d['screening']}</div>"
+    html += ("<div class='disclaimer'>\u26A0\uFE0F This is general information only, not a prescription. "
+             "Please check with your doctor or pharmacist before starting, stopping, or changing any medicine.</div>")
+    return f"### {name}\n" + html
+
+
+def find_matches(query):
+    q = query.lower().strip()
+    if not q:
+        return []
     results = []
     for name, d in DISEASES_DB.items():
-        if categories and d["category"] not in categories:
-            continue
-        haystack = " ".join([name, d["category"], d["overview"], " ".join(d["symptoms"]),
-                              " ".join(d["causes"])]).lower()
-        if not query or query in haystack:
+        in_symptoms = any(q in s.lower() for s in d["symptoms"])
+        if q in name.lower() or q in d["category"].lower() or in_symptoms:
             results.append(name)
-    return sorted(results)
+    return results
 
-def render_disease_card(name, data, show_favorite=True):
-    st.markdown(f"<div class='healix-title'>{data['icon']} {name}</div>", unsafe_allow_html=True)
-    sev = data.get("severity", "Moderate")
-    st.markdown(
-        f"<span class='category-badge'>{data['category'].upper()}</span>"
-        f"<span class='severity-badge' style='background-color:{SEVERITY_COLOR.get(sev,'#f9e2af')}'>{sev.upper()} CONCERN</span>",
-        unsafe_allow_html=True,
-    )
-    st.write("")
-    if show_favorite:
-        is_fav = name in st.session_state.favorites
-        if st.button(("★ Remove Favorite" if is_fav else "☆ Add to Favorites"), key=f"fav_{name}"):
-            if is_fav:
-                st.session_state.favorites.discard(name)
-            else:
-                st.session_state.favorites.add(name)
-            st.rerun()
 
-    tabs = st.tabs(["📋 Overview", "🩺 Symptoms", "⚠️ Causes", "🛡️ Prevention", "🔬 Screening"])
-    with tabs[0]:
-        st.markdown(f"<div class='body-text'>{data['overview']}</div>", unsafe_allow_html=True)
-    with tabs[1]:
-        for item in data["symptoms"]:
-            st.markdown(f"<div class='bullet-item'>• {item}</div>", unsafe_allow_html=True)
-    with tabs[2]:
-        for item in data["causes"]:
-            st.markdown(f"<div class='bullet-item'>• {item}</div>", unsafe_allow_html=True)
-    with tabs[3]:
-        for item in data["prevention"]:
-            st.markdown(f"<div class='bullet-item'>• {item}</div>", unsafe_allow_html=True)
-    with tabs[4]:
-        st.markdown(f"<div class='body-text'>{data['screening']}</div>", unsafe_allow_html=True)
+# --- Handle a category button click from the sidebar ---
+if st.session_state["pending_category"]:
+    cat = st.session_state["pending_category"]
+    names = [n for n, d in DISEASES_DB.items() if d["category"] == cat]
+    reply = f"Here are the conditions I know about in **{cat}**:"
+    st.session_state["messages"].append({"role": "assistant", "text": reply, "options": names})
+    st.session_state["pending_category"] = None
 
-    export_text = (
-        f"{name} ({data['category']})\n\nOverview:\n{data['overview']}\n\n"
-        f"Symptoms:\n" + "\n".join(f"- {s}" for s in data["symptoms"]) + "\n\n"
-        f"Causes:\n" + "\n".join(f"- {c}" for c in data["causes"]) + "\n\n"
-        f"Prevention:\n" + "\n".join(f"- {p}" for p in data["prevention"]) + "\n\n"
-        f"Screening:\n{data['screening']}\n"
-    )
-    st.download_button("⬇ Download summary (.txt)", export_text, file_name=f"{name}.txt", key=f"dl_{name}")
+# --- Render chat history ---
+for i, msg in enumerate(st.session_state["messages"]):
+    with st.chat_message("assistant" if msg["role"] == "assistant" else "user"):
+        st.markdown(msg["text"], unsafe_allow_html=True)
+        if msg.get("options"):
+            cols = st.columns(min(3, len(msg["options"])) or 1)
+            for j, opt in enumerate(msg["options"]):
+                if cols[j % len(cols)].button(opt, key=f"opt_{i}_{j}"):
+                    st.session_state["messages"].append({"role": "user", "text": opt})
+                    if opt in DISEASES_DB:
+                        st.session_state["messages"].append({"role": "assistant", "text": render_disease_card(opt)})
+                    st.rerun()
 
-# =========================================================
-# SIDEBAR NAVIGATION
-# =========================================================
-with st.sidebar:
-    st.markdown("## ⚕️ Healix")
-    st.caption("Educational medical explorer")
-    mode = st.radio(
-        "Mode",
-        ["🔎 Browse", "🩺 Symptom Checker", "⚖️ Compare", "⭐ Favorites", "📊 Stats"],
-        label_visibility="collapsed",
-    )
-    st.divider()
-    st.session_state.theme = st.select_slider("Theme", options=["Dark", "Light"], value=st.session_state.theme)
-    st.divider()
-    if st.button("🎲 Surprise me (random disease)"):
-        st.session_state["_random_pick"] = random.choice(list(DISEASES_DB.keys()))
-
-# =========================================================
-# MODE: BROWSE
-# =========================================================
-if mode == "🔎 Browse":
-    st.markdown("## ⚕️ Healix Medical Explorer")
-    st.caption("Search by disease name, category, symptom, or cause.")
-
-    col_search, col_cat = st.columns([2, 1])
-    with col_search:
-        query = st.text_input("Search", placeholder="e.g. cough, diabetes, fatigue...", label_visibility="collapsed")
-    with col_cat:
-        categories = st.multiselect("Filter by category", all_categories(), label_visibility="collapsed",
-                                     placeholder="Filter by category")
-
-    filtered = search_diseases(query, categories)
-
-    left, right = st.columns([1, 2])
-    with left:
-        st.markdown(f"**DISEASE INDEX ({len(filtered)})**")
-        if not filtered:
-            st.info("No matches found. Try a different search term.")
-            selected = None
-        else:
-            default_pick = st.session_state.pop("_random_pick", None)
-            idx = filtered.index(default_pick) if default_pick in filtered else 0
-            selected = st.radio("Diseases", filtered, index=idx, label_visibility="collapsed",
-                                 format_func=lambda n: f"{DISEASES_DB[n]['icon']} {n}")
-    with right:
-        if selected:
-            with st.container(border=True):
-                render_disease_card(selected, DISEASES_DB[selected])
-
-# =========================================================
-# MODE: SYMPTOM CHECKER
-# =========================================================
-elif mode == "🩺 Symptom Checker":
-    st.markdown("## 🩺 Symptom Checker")
-    st.caption("Select the symptoms you're experiencing — Healix will rank the closest matches. "
-               "This is educational only and not a diagnosis.")
-
-    picked = st.multiselect("Select symptoms", all_symptoms(), placeholder="Start typing a symptom...")
-
-    if picked:
-        scored = []
-        for name, d in DISEASES_DB.items():
-            overlap = len(set(picked) & set(d["symptoms"]))
-            if overlap > 0:
-                scored.append((name, d, overlap))
-        scored.sort(key=lambda x: x[2], reverse=True)
-
-        if not scored:
-            st.info("No diseases in the database match those symptoms.")
-        else:
-            st.markdown(f"**{len(scored)} possible matches**, ranked by number of overlapping symptoms:")
-            for name, d, overlap in scored[:10]:
-                pct = int(100 * overlap / len(d["symptoms"]))
-                with st.expander(f"{d['icon']} {name}  —  {overlap} symptom match"):
-                    st.progress(min(pct, 100), text=f"{pct}% of this condition's known symptoms matched")
-                    render_disease_card(name, d, show_favorite=True)
+# --- Chat input ---
+user_input = st.chat_input("Type a condition or symptom, like 'diabetes' or 'cough'...")
+if user_input:
+    st.session_state["messages"].append({"role": "user", "text": user_input})
+    matches = find_matches(user_input)
+    if len(matches) == 0:
+        st.session_state["messages"].append({
+            "role": "assistant",
+            "text": f"I couldn't find a match for \"{user_input}\". Try a simpler word, like a symptom "
+                    f"(e.g. 'cough') or a condition name (e.g. 'diabetes')."
+        })
+    elif len(matches) == 1:
+        st.session_state["messages"].append({"role": "assistant", "text": render_disease_card(matches[0])})
     else:
-        st.info("Pick one or more symptoms above to see possible matches.")
-
-    st.markdown(
-        "<div class='disclaimer'>⚠️ This tool is for educational purposes only and cannot diagnose any condition. "
-        "Symptom overlap does not imply likelihood or causation — always consult a licensed healthcare provider.</div>",
-        unsafe_allow_html=True,
-    )
-
-# =========================================================
-# MODE: COMPARE
-# =========================================================
-elif mode == "⚖️ Compare":
-    st.markdown("## ⚖️ Compare Diseases")
-    st.caption("Pick two conditions to see them side by side.")
-
-    names = sorted(DISEASES_DB.keys())
-    c1, c2 = st.columns(2)
-    with c1:
-        pick_a = st.selectbox("Condition A", names, index=0)
-    with c2:
-        pick_b = st.selectbox("Condition B", names, index=1 if len(names) > 1 else 0)
-
-    col_a, col_b = st.columns(2)
-    for col, pick in [(col_a, pick_a), (col_b, pick_b)]:
-        with col:
-            with st.container(border=True):
-                d = DISEASES_DB[pick]
-                render_disease_card(pick, d, show_favorite=True)
-
-# =========================================================
-# MODE: FAVORITES
-# =========================================================
-elif mode == "⭐ Favorites":
-    st.markdown("## ⭐ Your Favorites")
-    if not st.session_state.favorites:
-        st.info("You haven't favorited any conditions yet. Star a disease from Browse, Compare, or the Symptom Checker to save it here.")
-    else:
-        for name in sorted(st.session_state.favorites):
-            with st.container(border=True):
-                render_disease_card(name, DISEASES_DB[name])
-
-# =========================================================
-# MODE: STATS
-# =========================================================
-elif mode == "📊 Stats":
-    st.markdown("## 📊 Database Stats")
-
-    total = len(DISEASES_DB)
-    cat_counts = Counter(d["category"] for d in DISEASES_DB.values())
-    sev_counts = Counter(d.get("severity", "Moderate") for d in DISEASES_DB.values())
-
-    m1, m2, m3 = st.columns(3)
-    m1.metric("Total conditions", total)
-    m2.metric("Categories covered", len(cat_counts))
-    m3.metric("High-severity conditions", sev_counts.get("High", 0))
-
-    st.markdown("#### Conditions by category")
-    st.bar_chart(dict(sorted(cat_counts.items(), key=lambda x: -x[1])))
-
-    st.markdown("#### Conditions by severity")
-    st.bar_chart(dict(sev_counts))
-
-st.markdown(
-    "<div class='disclaimer'>⚠️ Healix is for educational purposes only and is not a substitute for "
-    "professional medical diagnosis. Please consult a licensed healthcare provider.</div>",
-    unsafe_allow_html=True,
-)
+        st.session_state["messages"].append({
+            "role": "assistant",
+            "text": f"I found a few matches for \"{user_input}\". Which one did you mean?",
+            "options": matches
+        })
+    st.rerun()
